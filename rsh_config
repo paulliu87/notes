@@ -1,0 +1,45 @@
+# ~/.rsh/config
+# Avvo RancherSHell config
+
+# use supplied host if it looks like it's the full host for a test env
+Host *rancher-*.jakotako.com*
+  HostName %h
+
+# don't default the env if it's been given
+Host */?*/*/*
+  Environment %e
+
+# foo.jakotako.com as shortcut for rancher-foo.jakotako.com
+Host *.jakotako.com*
+  HostName rancher-%h
+
+# stag as shortcut for rancher.stag.avvo.com
+Host stag/* stag.avvo.com/* *rancher.stag.avvo.com*
+  HostName rancher.stag.avvo.com
+  Environment stag
+  Protocol https
+
+# wow/wowrack/prod as shortcut for rancher.prod.avvo.com
+Host wow/* wowrack/* prod/* prod.avvo.com/* *rancher.prod.avvo.com*
+  HostName rancher.prod.avvo.com
+  Environment wowrack
+  Protocol https
+
+# don't default the stack if it's been given
+Host */?*/*
+  Stack %S
+
+# defautls
+Host *
+  Protocol https
+  # user in docker containers is usually root
+  User root
+  # foo as shortcut for rancher-foo.jakotako.com
+  HostName rancher-%h.jakotako.com
+  # default stack to service, as they often match
+  Stack %s
+  # this is the env name test envs use
+  Environment Default
+  # uncomment next two lines to exec shell instead of login
+  # RemoteCommand /bin/sh
+  # RequestTTY yes

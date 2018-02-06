@@ -1,0 +1,46 @@
+version: '2'
+services:
+  datadog-init:
+    image: tswayne/datadog-rancher-init:latest
+    network_mode: none
+    volumes:
+    - /opt/rancher
+    command:
+    - /bin/true
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.start_once: 'true'
+  datadog-agent:
+    image: datadog/docker-dd-agent:latest
+    environment:
+      API_KEY: 14b486c950e72157b17d3b073040dd87
+      DD_CONSUL_SCHEME: http
+      DD_CONSUL_VERIFY: 'true'
+      DD_HOST_LABELS: facing,fqdn,env
+      DD_SD_CONFIG_BACKEND: consul
+      DD_SERVICE_DISCOVERY: 'true'
+      DD_STATSD_STANDALONE: 'false'
+      SD_BACKEND_HOST: docker1stag.corp.avvo.com
+      SD_BACKEND_PORT: '8500'
+      DD_APM_ENABLED: 'true'
+      NON_LOCAL_TRAFFIC: 'true'
+    entrypoint:
+    - /opt/rancher/entrypoint-wrapper.py
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - /proc/:/host/proc/:ro
+    - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    volumes_from:
+    - datadog-init
+    ports:
+    - 8125:8125/udp
+    - 8126:8126/tcp
+    command:
+    - supervisord
+    - -n
+    - -c
+    - /etc/dd-agent/supervisor.conf
+    labels:
+      io.rancher.sidekicks: datadog-init
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
